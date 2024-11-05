@@ -14,29 +14,53 @@ class _MainScreenState extends State<MainScreen> {
     // TODO: initiate controllers
   }
 
+  TextEditingController searchZip = TextEditingController();
+  Future<String>? cityName;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: Column(
-            children: [
-              const TextField(
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(), labelText: "Postleitzahl"),
-              ),
-              const SizedBox(height: 32),
-              OutlinedButton(
-                onPressed: () {
-                  // TODO: implementiere Suche
-                },
-                child: const Text("Suche"),
-              ),
-              const SizedBox(height: 32),
-              Text("Ergebnis: Noch keine PLZ gesucht",
-                  style: Theme.of(context).textTheme.labelLarge),
-            ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Center(
+            child: Column(
+              children: [
+                TextField(
+                  controller: searchZip,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(), labelText: "Postleitzahl"),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 32),
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      cityName = getCityFromZip(searchZip.text);
+                    });
+                  },
+                  child: const Text("Suche"),
+                ),
+                const SizedBox(height: 32),
+                FutureBuilder(
+                  future: cityName,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Text("Error");
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasData) {
+                      return Text(
+                          "Suche nach ${searchZip.text}: ${snapshot.data}",
+                          style: Theme.of(context).textTheme.labelLarge);
+                    }
+                    return Text("Noch keine PLZ gesucht",
+                        style: Theme.of(context).textTheme.labelLarge);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
